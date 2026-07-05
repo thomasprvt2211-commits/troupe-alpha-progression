@@ -5,13 +5,21 @@ interface SupabaseLikeError {
   code?: string;
 }
 
+export const SUPABASE_CONNECTION_ERROR =
+  "Connexion Supabase impossible. Vérifiez les variables Vercel ou la configuration Supabase.";
+
+export const SUPABASE_LOCAL_FALLBACK_WARNING =
+  "Sauvegarde locale utilisée car Supabase est inaccessible.";
+
 export function getSupabaseErrorMessage(error: unknown): string {
   if (!error) return "Erreur inconnue";
 
-  if (typeof error === "string") return error;
+  if (typeof error === "string") {
+    return sanitizeErrorMessage(error);
+  }
 
   if (error instanceof Error && error.message) {
-    return error.message;
+    return sanitizeErrorMessage(error.message);
   }
 
   if (typeof error === "object") {
@@ -21,11 +29,16 @@ export function getSupabaseErrorMessage(error: unknown): string {
     );
 
     if (parts.length > 0) {
-      return parts.join(" — ");
+      return sanitizeErrorMessage(parts.join(" — "));
     }
   }
 
   return "Erreur inconnue";
+}
+
+function sanitizeErrorMessage(message: string): string {
+  const firstLine = message.split("\n")[0]?.trim() ?? message;
+  return firstLine.slice(0, 300);
 }
 
 export interface MemberBadgesError {
@@ -42,4 +55,8 @@ export function createMemberBadgesError(
     message,
     detail: detail || null,
   };
+}
+
+export function createSupabaseConnectionError(caught: unknown): MemberBadgesError {
+  return createMemberBadgesError(SUPABASE_CONNECTION_ERROR, caught);
 }

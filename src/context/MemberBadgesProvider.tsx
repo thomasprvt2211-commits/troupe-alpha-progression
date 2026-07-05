@@ -22,9 +22,12 @@ import {
   addMemberBadge as addBadgeRemote,
   updateMemberBadge as updateBadgeRemote,
   deleteMemberBadge as deleteBadgeRemote,
-  subscribeToMemberBadges,
 } from "@/src/lib/supabase/member-badges";
-import { createMemberBadgesError, type MemberBadgesError } from "@/src/lib/supabase/errors";
+import {
+  createSupabaseConnectionError,
+  SUPABASE_LOCAL_FALLBACK_WARNING,
+  type MemberBadgesError,
+} from "@/src/lib/supabase/errors";
 import type { MemberBadgesStore, MemberManualBadge } from "@/src/types";
 
 export interface MemberBadgesContextValue {
@@ -34,6 +37,7 @@ export interface MemberBadgesContextValue {
   isSaving: boolean;
   error: MemberBadgesError | null;
   configWarning: string | null;
+  fallbackWarning: string | null;
   isSupabaseEnabled: boolean;
   getBadges: (memberId: string) => MemberManualBadge[];
   getCount: (memberId: string) => number;
@@ -55,6 +59,17 @@ const MemberBadgesContext = createContext<MemberBadgesContextValue | null>(null)
 
 const EMPTY_STORE: MemberBadgesStore = {};
 
+function applyLocalFallback(
+  setStore: (store: MemberBadgesStore) => void,
+  setFallbackWarning: (warning: string | null) => void,
+  setError: (error: MemberBadgesError | null) => void,
+  caught: unknown
+) {
+  setStore(loadAllMemberBadges());
+  setFallbackWarning(SUPABASE_LOCAL_FALLBACK_WARNING);
+  setError(createSupabaseConnectionError(caught));
+}
+
 function useMemberBadgesState(): MemberBadgesContextValue {
   const [store, setStore] = useState<MemberBadgesStore>(EMPTY_STORE);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -62,6 +77,7 @@ function useMemberBadgesState(): MemberBadgesContextValue {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<MemberBadgesError | null>(null);
   const [configWarning, setConfigWarning] = useState<string | null>(null);
+  const [fallbackWarning, setFallbackWarning] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     if (typeof window === "undefined") return;
@@ -71,6 +87,7 @@ function useMemberBadgesState(): MemberBadgesContextValue {
 
     if (!isSupabaseConfigured()) {
       setConfigWarning(getSupabaseConfigError());
+      setFallbackWarning(null);
       setStore(loadAllMemberBadges());
       setIsLoaded(true);
       setIsLoading(false);
@@ -82,11 +99,9 @@ function useMemberBadgesState(): MemberBadgesContextValue {
     try {
       const data = await fetchAllMemberBadges();
       setStore(data ?? EMPTY_STORE);
+      setFallbackWarning(null);
     } catch (caught) {
-      setError(
-        createMemberBadgesError("Impossible de charger les badges depuis Supabase.", caught)
-      );
-      setStore(loadAllMemberBadges());
+      applyLocalFallback(setStore, setFallbackWarning, setError, caught);
     } finally {
       setIsLoaded(true);
       setIsLoading(false);
@@ -107,14 +122,9 @@ function useMemberBadgesState(): MemberBadgesContextValue {
     window.addEventListener(MEMBER_BADGES_UPDATE_EVENT, handleLocalUpdate);
     window.addEventListener("storage", handleLocalUpdate);
 
-    const unsubscribeRealtime = subscribeToMemberBadges(() => {
-      void refresh();
-    });
-
     return () => {
       window.removeEventListener(MEMBER_BADGES_UPDATE_EVENT, handleLocalUpdate);
       window.removeEventListener("storage", handleLocalUpdate);
-      unsubscribeRealtime();
     };
   }, [refresh]);
 
@@ -142,15 +152,18 @@ function useMemberBadgesState(): MemberBadgesContextValue {
 
       try {
         if (isSupabaseConfigured()) {
-          await addBadgeRemote(memberId, data);
-          await refresh();
+          try {
+            await addBadgeRemote(memberId, data);
+            await refresh();
+            setFallbackWarning(null);
+          } catch (caught) {
+            addBadgeLocal(memberId, data);
+            applyLocalFallback(setStore, setFallbackWarning, setError, caught);
+          }
         } else {
           addBadgeLocal(memberId, data);
           setStore(loadAllMemberBadges());
         }
-      } catch (caught) {
-        setError(createMemberBadgesError("Erreur lors de l'ajout du badge.", caught));
-        throw new Error("add failed");
       } finally {
         setIsSaving(false);
       }
@@ -169,15 +182,18 @@ function useMemberBadgesState(): MemberBadgesContextValue {
 
       try {
         if (isSupabaseConfigured()) {
-          await updateBadgeRemote(badgeId, updates);
-          await refresh();
+          try {
+            await updateBadgeRemote(badgeId, updates);
+            await refresh();
+            setFallbackWarning(null);
+          } catch (caught) {
+            updateBadgeLocal(memberId, badgeId, updates);
+            applyLocalFallback(setStore, setFallbackWarning, setError, caught);
+          }
         } else {
           updateBadgeLocal(memberId, badgeId, updates);
           setStore(loadAllMemberBadges());
         }
-      } catch (caught) {
-        setError(createMemberBadgesError("Erreur lors de la modification du badge.", caught));
-        throw new Error("update failed");
       } finally {
         setIsSaving(false);
       }
@@ -192,15 +208,18 @@ function useMemberBadgesState(): MemberBadgesContextValue {
 
       try {
         if (isSupabaseConfigured()) {
-          await deleteBadgeRemote(badgeId);
-          await refresh();
+          try {
+            await deleteBadgeRemote(badgeId);
+            await refresh();
+            setFallbackWarning(null);
+          } catch (caught) {
+            deleteBadgeLocal(memberId, badgeId);
+            applyLocalFallback(setStore, setFallbackWarning, setError, caught);
+          }
         } else {
           deleteBadgeLocal(memberId, badgeId);
           setStore(loadAllMemberBadges());
         }
-      } catch (caught) {
-        setError(createMemberBadgesError("Erreur lors de la suppression du badge.", caught));
-        throw new Error("delete failed");
       } finally {
         setIsSaving(false);
       }
@@ -216,6 +235,7 @@ function useMemberBadgesState(): MemberBadgesContextValue {
       isSaving,
       error,
       configWarning,
+      fallbackWarning,
       isSupabaseEnabled: isSupabaseConfigured(),
       getBadges,
       getCount,
@@ -232,6 +252,7 @@ function useMemberBadgesState(): MemberBadgesContextValue {
       isSaving,
       error,
       configWarning,
+      fallbackWarning,
       getBadges,
       getCount,
       getTotalCount,
@@ -250,6 +271,7 @@ const FALLBACK_VALUE: MemberBadgesContextValue = {
   isSaving: false,
   error: null,
   configWarning: null,
+  fallbackWarning: null,
   isSupabaseEnabled: false,
   getBadges: () => [],
   getCount: () => 0,

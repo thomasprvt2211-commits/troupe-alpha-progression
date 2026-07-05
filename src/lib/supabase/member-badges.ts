@@ -106,30 +106,7 @@ export async function deleteMemberBadge(badgeId: string): Promise<void> {
   if (error) throw error;
 }
 
-export function subscribeToMemberBadges(onChange: () => void): () => void {
-  if (typeof window === "undefined") return () => {};
-
-  const supabase = getSupabaseClient();
-  if (!supabase) return () => {};
-
-  try {
-    const channel = supabase
-      .channel("member_badges_changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "member_badges" },
-        () => onChange()
-      )
-      .subscribe();
-
-    return () => {
-      try {
-        void supabase.removeChannel(channel);
-      } catch {
-        // ignore cleanup errors
-      }
-    };
-  } catch {
-    return () => {};
-  }
+export function subscribeToMemberBadges(_onChange: () => void): () => void {
+  // Realtime désactivé temporairement — fetch manuel uniquement
+  return () => {};
 }

@@ -16,7 +16,7 @@ function isValidEnvValue(value: string | undefined): boolean {
   );
 }
 
-function isValidSupabaseUrl(url: string): boolean {
+export function isValidSupabaseUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
     return parsed.protocol === "https:" && parsed.hostname.includes("supabase");
@@ -25,18 +25,39 @@ function isValidSupabaseUrl(url: string): boolean {
   }
 }
 
-export function isSupabaseConfigured(): boolean {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+export function getSupabaseUrl(): string {
+  return process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? "";
+}
 
-  return (
-    isValidEnvValue(url) &&
-    isValidEnvValue(key) &&
-    isValidSupabaseUrl(url!.trim())
-  );
+export function getSupabaseAnonKey(): string {
+  return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ?? "";
+}
+
+export function isSupabaseUrlValid(): boolean {
+  const url = getSupabaseUrl();
+  return Boolean(url) && isValidSupabaseUrl(url);
+}
+
+export function isAnonKeyPresent(): boolean {
+  return isValidEnvValue(getSupabaseAnonKey());
+}
+
+export function isSupabaseConfigured(): boolean {
+  return isSupabaseUrlValid() && isAnonKeyPresent();
 }
 
 export function getSupabaseConfigError(): string | null {
   if (isSupabaseConfigured()) return null;
   return "Supabase n'est pas configuré.";
+}
+
+export function getSupabaseDiagnostics() {
+  const url = getSupabaseUrl();
+
+  return {
+    configured: isSupabaseConfigured(),
+    url: url || "(non défini)",
+    urlValid: isSupabaseUrlValid(),
+    anonKeyPresent: isAnonKeyPresent(),
+  };
 }

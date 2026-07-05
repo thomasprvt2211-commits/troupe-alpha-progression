@@ -1,6 +1,7 @@
 "use client";
 
 import StatsSection from "@/components/StatsSection";
+import SupabaseDiagnosticsCard from "@/components/SupabaseDiagnosticsCard";
 import PageHeader from "@/components/ui/PageHeader";
 import {
   patrols,
@@ -17,6 +18,8 @@ export default function StatistiquesPage() {
         title="Statistiques"
         subtitle="Vue d'ensemble de la troupe — badges validés manuellement et effectifs par patrouille"
       />
+
+      <SupabaseDiagnosticsCard />
 
       <StatsSection
         patrols={patrols}

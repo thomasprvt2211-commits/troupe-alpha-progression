@@ -18,11 +18,11 @@ import {
 } from "@/src/lib/member-badge-storage";
 import { isSupabaseConfigured, getSupabaseConfigError } from "@/src/lib/supabase/config";
 import {
-  fetchAllMemberBadges,
-  addMemberBadge as addBadgeRemote,
-  updateMemberBadge as updateBadgeRemote,
-  deleteMemberBadge as deleteBadgeRemote,
-} from "@/src/lib/supabase/member-badges";
+  fetchAllMemberBadgesFromApi,
+  addMemberBadgeViaApi,
+  updateMemberBadgeViaApi,
+  deleteMemberBadgeViaApi,
+} from "@/src/lib/member-badges-api";
 import {
   createSupabaseConnectionError,
   SUPABASE_LOCAL_FALLBACK_WARNING,
@@ -97,7 +97,7 @@ function useMemberBadgesState(): MemberBadgesContextValue {
     setConfigWarning(null);
 
     try {
-      const data = await fetchAllMemberBadges();
+      const data = await fetchAllMemberBadgesFromApi();
       setStore(data ?? EMPTY_STORE);
       setFallbackWarning(null);
     } catch (caught) {
@@ -153,7 +153,7 @@ function useMemberBadgesState(): MemberBadgesContextValue {
       try {
         if (isSupabaseConfigured()) {
           try {
-            await addBadgeRemote(memberId, data);
+            await addMemberBadgeViaApi(memberId, data);
             await refresh();
             setFallbackWarning(null);
           } catch (caught) {
@@ -183,7 +183,7 @@ function useMemberBadgesState(): MemberBadgesContextValue {
       try {
         if (isSupabaseConfigured()) {
           try {
-            await updateBadgeRemote(badgeId, updates);
+            await updateMemberBadgeViaApi(badgeId, updates);
             await refresh();
             setFallbackWarning(null);
           } catch (caught) {
@@ -209,7 +209,7 @@ function useMemberBadgesState(): MemberBadgesContextValue {
       try {
         if (isSupabaseConfigured()) {
           try {
-            await deleteBadgeRemote(badgeId);
+            await deleteMemberBadgeViaApi(badgeId);
             await refresh();
             setFallbackWarning(null);
           } catch (caught) {

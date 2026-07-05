@@ -9,7 +9,7 @@ export const SUPABASE_CONNECTION_ERROR =
   "Connexion Supabase impossible. Vérifiez les variables Vercel ou la configuration Supabase.";
 
 export const SUPABASE_LOCAL_FALLBACK_WARNING =
-  "Sauvegarde locale utilisée car Supabase est inaccessible.";
+  "Connexion Supabase impossible. Sauvegarde locale utilisée.";
 
 export function getSupabaseErrorMessage(error: unknown): string {
   if (!error) return "Erreur inconnue";

@@ -3,13 +3,11 @@
 import { useEffect, useState } from "react";
 import { Database, RefreshCw } from "lucide-react";
 import {
-  getSupabaseDiagnostics,
   testSupabaseConnection,
   type SupabaseConnectionTestResult,
 } from "@/src/lib/supabase/diagnostics";
 
 export default function SupabaseDiagnosticsCard() {
-  const diagnostics = getSupabaseDiagnostics();
   const [testResult, setTestResult] = useState<SupabaseConnectionTestResult | null>(null);
   const [isTesting, setIsTesting] = useState(false);
   const [autoTestDone, setAutoTestDone] = useState(false);
@@ -44,86 +42,61 @@ export default function SupabaseDiagnosticsCard() {
         <div className="flex flex-wrap justify-between gap-2">
           <dt className="text-gray-500">Supabase configuré</dt>
           <dd className="font-medium text-scout-charcoal">
-            {diagnostics.configured ? "Oui" : "Non"}
+            {testResult ? (testResult.configured ? "Oui" : "Non") : "—"}
           </dd>
         </div>
         <div className="flex flex-wrap justify-between gap-2">
           <dt className="text-gray-500">URL Supabase utilisée</dt>
           <dd className="max-w-full break-all font-medium text-scout-charcoal">
-            {diagnostics.url}
+            {testResult?.url ?? "—"}
           </dd>
         </div>
         <div className="flex flex-wrap justify-between gap-2">
           <dt className="text-gray-500">URL valide</dt>
           <dd className="font-medium text-scout-charcoal">
-            {diagnostics.urlValid ? "Oui" : "Non"}
+            {testResult ? (testResult.urlValid ? "Oui" : "Non") : "—"}
           </dd>
         </div>
         <div className="flex flex-wrap justify-between gap-2">
           <dt className="text-gray-500">Clé anon présente</dt>
           <dd className="font-medium text-scout-charcoal">
-            {diagnostics.anonKeyPresent ? "Oui" : "Non"}
+            {testResult ? (testResult.keyPresent ? "Oui" : "Non") : "—"}
           </dd>
         </div>
         <div className="flex flex-wrap justify-between gap-2">
-          <dt className="text-gray-500">Format de la clé</dt>
-          <dd className="font-medium text-scout-charcoal">{diagnostics.keyFormatLabel}</dd>
-        </div>
-        <div className="flex flex-wrap justify-between gap-2">
-          <dt className="text-gray-500">Projet accessible</dt>
-          <dd className="font-medium text-scout-charcoal">
-            {testResult?.projectReachable === null
-              ? "—"
-              : testResult?.projectReachable
-                ? "Oui"
-                : "Non"}
-          </dd>
-        </div>
-        {testResult?.projectReachableDetail && (
-          <div className="flex flex-wrap justify-between gap-2">
-            <dt className="text-gray-500">Détail projet</dt>
-            <dd className="max-w-full break-all font-medium text-scout-charcoal">
-              {testResult.projectReachableDetail}
-            </dd>
-          </div>
-        )}
-        <div className="flex flex-wrap justify-between gap-2">
-          <dt className="text-gray-500">Résultat du test fetch</dt>
+          <dt className="text-gray-500">Résultat du test API</dt>
           <dd className="font-medium text-scout-charcoal">
             {testResult?.result ?? (isTesting ? "Test en cours..." : "—")}
           </dd>
         </div>
-        {testResult?.statusCode !== null && testResult?.statusCode !== undefined && (
-          <div className="flex flex-wrap justify-between gap-2">
-            <dt className="text-gray-500">Code HTTP</dt>
-            <dd className="font-medium text-scout-charcoal">{testResult.statusCode}</dd>
-          </div>
-        )}
         <div className="flex flex-wrap justify-between gap-2">
-          <dt className="text-gray-500">Test SDK Supabase</dt>
+          <dt className="text-gray-500">Badges en base</dt>
           <dd className="font-medium text-scout-charcoal">
-            {testResult?.sdkResult ?? (isTesting ? "Test en cours..." : "—")}
+            {testResult?.success ? testResult.count : "—"}
           </dd>
         </div>
-        {testResult?.sdkErrorDetail && (
-          <div className="flex flex-wrap justify-between gap-2">
-            <dt className="text-gray-500">Erreur SDK</dt>
-            <dd className="max-w-full break-all font-medium text-scout-charcoal">
-              {testResult.sdkErrorDetail}
-            </dd>
-          </div>
-        )}
         <div className="flex flex-wrap justify-between gap-2">
           <dt className="text-gray-500">Message d&apos;erreur exact</dt>
           <dd className="max-w-full break-all font-medium text-scout-charcoal">
-            {testResult?.errorDetail ?? "—"}
+            {testResult?.error ?? "—"}
           </dd>
         </div>
-        {testResult?.hint && (
+        {testResult?.success && (
+          <div className="mt-3 rounded-xl border border-green-200 bg-green-50 px-3 py-2">
+            <p className="text-xs leading-relaxed text-green-900">
+              La connexion Supabase via l&apos;API Next.js fonctionne. Les badges
+              devraient se synchroniser entre appareils.
+            </p>
+          </div>
+        )}
+        {testResult && !testResult.success && testResult.error && (
           <div className="mt-3 rounded-xl border border-amber-200 bg-white/70 px-3 py-2">
             <p className="text-xs leading-relaxed text-amber-950">
               <span className="font-semibold">Conseil : </span>
-              {testResult.hint}
+              Vérifiez que le projet Supabase est actif, que la table{" "}
+              <code className="text-[11px]">member_badges</code> existe (voir{" "}
+              <code className="text-[11px]">supabase/schema.sql</code>), et que les
+              variables Vercel sont correctes, puis redéployez.
             </p>
           </div>
         )}

@@ -12,7 +12,6 @@ const navLinks = [
   { href: "/patrouilles", label: "Patrouilles" },
   { href: "/membres", label: "Membres" },
   { href: "/badges", label: "Badges" },
-  { href: "/statistiques", label: "Statistiques" },
 ];
 
 const adminLink = { href: "/gestion-badges", label: "Gestion badges" };

@@ -27,6 +27,14 @@ export default function Footer() {
             <p className="mt-1 text-xs text-gray-400">
               Créé par Thomas Fadi Abdallah.
             </p>
+            <p className="mt-2">
+              <Link
+                href="/admin"
+                className="text-[11px] text-gray-300 transition-colors hover:text-gray-500"
+              >
+                Admin
+              </Link>
+            </p>
           </div>
         </div>
       </div>

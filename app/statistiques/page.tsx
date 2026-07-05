@@ -1,32 +1,10 @@
-"use client";
+import { redirect } from "next/navigation";
+import { isAdminAuthenticated } from "@/src/lib/admin/auth";
 
-import StatsSection from "@/components/StatsSection";
-import SupabaseDiagnosticsCard from "@/components/SupabaseDiagnosticsCard";
-import PageHeader from "@/components/ui/PageHeader";
-import {
-  patrols,
-  members,
-  getAllCP,
-  getAllSP,
-} from "@/src/data/troupe-alpha";
+export default async function StatistiquesRedirectPage() {
+  if (await isAdminAuthenticated()) {
+    redirect("/admin/statistiques");
+  }
 
-export default function StatistiquesPage() {
-  return (
-    <div className="section-container py-10 sm:py-14 lg:py-16">
-      <PageHeader
-        badge="Analytics"
-        title="Statistiques"
-        subtitle="Vue d'ensemble de la troupe — badges validés manuellement et effectifs par patrouille"
-      />
-
-      <SupabaseDiagnosticsCard />
-
-      <StatsSection
-        patrols={patrols}
-        members={members}
-        cpMembers={getAllCP()}
-        spMembers={getAllSP()}
-      />
-    </div>
-  );
+  redirect("/admin");
 }

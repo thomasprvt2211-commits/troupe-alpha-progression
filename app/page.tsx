@@ -8,7 +8,7 @@ import {
   getSPForPatrol,
 } from "@/src/data/troupe-alpha";
 import { getMembersByPatrol } from "@/src/lib/utils";
-import { ArrowRight, Users, Award, BarChart3, Layers, Info } from "lucide-react";
+import { ArrowRight, Users, Award, Layers, Info } from "lucide-react";
 
 export default function HomePage() {
   const cpCount = members.filter((m) => m.role === "CP").length;
@@ -36,13 +36,6 @@ export default function HomePage() {
       description: "Idées de badges à attribuer manuellement",
       color: "from-amber-50 to-scout-gold/10",
     },
-    {
-      href: "/statistiques",
-      icon: BarChart3,
-      title: "Statistiques",
-      description: "Tableau de bord analytique de la troupe",
-      color: "from-gray-50 to-gray-100/50",
-    },
   ];
 
   return (
@@ -64,7 +57,7 @@ export default function HomePage() {
             Toutes les sections du tableau de bord en un clic
           </p>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {quickLinks.map((link) => (
             <Link
               key={link.href}

@@ -82,6 +82,10 @@ export default function Hero({
               Voir les patrouilles
             </Link>
           </div>
+
+          <p className="mx-auto mt-8 max-w-lg text-xs leading-relaxed text-white/60">
+            Site exclusif aux Scouts du Liban — Groupe SSCC Batroun
+          </p>
         </motion.div>
 
         <div className="mt-16 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4">

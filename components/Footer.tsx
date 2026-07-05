@@ -17,12 +17,15 @@ export default function Footer() {
               <p className="text-xs text-gray-400">Progression personnelle</p>
             </div>
           </div>
-          <div className="text-center sm:text-right">
+          <div className="max-w-md text-center sm:text-right">
             <p className="text-sm font-medium text-gray-600">
               © 2025-2026 Troupe Alpha — Progression personnelle
             </p>
+            <p className="mt-1 text-xs leading-relaxed text-gray-500">
+              Site exclusif aux Scouts du Liban — Groupe SSCC Batroun.
+            </p>
             <p className="mt-1 text-xs text-gray-400">
-              Créé pour le suivi scout de la troupe.
+              Créé par Thomas Fadi Abdallah.
             </p>
           </div>
         </div>

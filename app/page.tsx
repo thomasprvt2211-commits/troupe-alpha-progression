@@ -8,7 +8,7 @@ import {
   getSPForPatrol,
 } from "@/src/data/troupe-alpha";
 import { getMembersByPatrol } from "@/src/lib/utils";
-import { ArrowRight, Users, Award, BarChart3, Layers } from "lucide-react";
+import { ArrowRight, Users, Award, BarChart3, Layers, Info } from "lucide-react";
 
 export default function HomePage() {
   const cpCount = members.filter((m) => m.role === "CP").length;
@@ -88,6 +88,28 @@ export default function HomePage() {
               </span>
             </Link>
           ))}
+        </div>
+      </section>
+
+      <section className="section-container pb-16 lg:pb-20">
+        <div className="card-base mx-auto max-w-2xl border-scout-forest/10 bg-gradient-to-br from-white to-scout-forest/[0.03] px-6 py-5">
+          <div className="mb-3 flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-scout-forest/10 text-scout-forest">
+              <Info className="h-4 w-4" />
+            </div>
+            <h2 className="font-display text-base font-semibold text-scout-charcoal">
+              À propos du site
+            </h2>
+          </div>
+          <p className="text-sm leading-relaxed text-gray-600">
+            Cette plateforme a été créée pour aider la Troupe Alpha à suivre les
+            patrouilles, les membres et les badges validés. Elle est réservée aux
+            Scouts du Liban — Groupe SSCC Batroun.
+          </p>
+          <p className="mt-3 text-xs font-medium text-scout-forest">
+            Créé par Thomas Fadi Abdallah pour le suivi de la progression personnelle
+            de la Troupe Alpha.
+          </p>
         </div>
       </section>
 

@@ -4,7 +4,7 @@
  * ============================================================================
  *
  * Patrouilles et membres : modifiez ce fichier.
- * Badges éditables : page /gestion-badges (localStorage).
+ * Badges membres : Supabase (member_badges). Idées de badges : /gestion-badges (localStorage).
  *
  * ── MODIFIER PLUS TARD ──────────────────────────────────────────────────────
  *

@@ -1,3 +1,5 @@
+/** Fallback local lorsque Supabase n'est pas configuré */
+
 import type { Member, MemberBadgesStore, MemberManualBadge, PatrolId } from "@/src/types";
 
 export const MEMBER_BADGES_STORAGE_KEY = "troupe-alpha-member-badges";

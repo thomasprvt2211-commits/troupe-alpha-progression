@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Award, Pencil, Trash2, Check, X, Plus } from "lucide-react";
+import { Award, Pencil, Trash2, Check, X, Plus, AlertCircle, CloudOff } from "lucide-react";
 import { useMemberBadges } from "@/src/hooks/useMemberBadges";
 import { formatDate } from "@/src/lib/utils";
 import EmptyState from "@/components/ui/EmptyState";
@@ -21,6 +21,11 @@ export default function MemberBadgeEditor({
     updateMemberBadge,
     deleteMemberBadge,
     isLoaded,
+    isLoading,
+    isSaving,
+    error,
+    configWarning,
+    isSupabaseEnabled,
   } = useMemberBadges();
 
   const badges = getBadges(memberId);
@@ -31,16 +36,21 @@ export default function MemberBadgeEditor({
   const [editNote, setEditNote] = useState("");
   const [editDate, setEditDate] = useState("");
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = newName.trim();
-    if (!trimmed) return;
-    addMemberBadge(memberId, {
-      name: trimmed,
-      note: newNote.trim() || undefined,
-    });
-    setNewName("");
-    setNewNote("");
+    if (!trimmed || isSaving) return;
+
+    try {
+      await addMemberBadge(memberId, {
+        name: trimmed,
+        note: newNote.trim() || undefined,
+      });
+      setNewName("");
+      setNewNote("");
+    } catch {
+      // error state handled by hook
+    }
   };
 
   const startEdit = (badge: { id: string; name: string; note?: string; date?: string }) => {
@@ -50,14 +60,19 @@ export default function MemberBadgeEditor({
     setEditDate(badge.date ?? "");
   };
 
-  const saveEdit = () => {
-    if (!editingId || !editName.trim()) return;
-    updateMemberBadge(memberId, editingId, {
-      name: editName.trim(),
-      note: editNote.trim() || undefined,
-      date: editDate || undefined,
-    });
-    setEditingId(null);
+  const saveEdit = async () => {
+    if (!editingId || !editName.trim() || isSaving) return;
+
+    try {
+      await updateMemberBadge(memberId, editingId, {
+        name: editName.trim(),
+        note: editNote.trim() || undefined,
+        date: editDate || undefined,
+      });
+      setEditingId(null);
+    } catch {
+      // error state handled by hook
+    }
   };
 
   const cancelEdit = () => {
@@ -67,14 +82,18 @@ export default function MemberBadgeEditor({
     setEditDate("");
   };
 
-  const handleDelete = (badgeId: string, badgeName: string) => {
-    if (window.confirm(`Supprimer le badge « ${badgeName} » de ${memberName} ?`)) {
-      deleteMemberBadge(memberId, badgeId);
+  const handleDelete = async (badgeId: string, badgeName: string) => {
+    if (!window.confirm(`Supprimer le badge « ${badgeName} » de ${memberName} ?`)) return;
+
+    try {
+      await deleteMemberBadge(memberId, badgeId);
       if (editingId === badgeId) cancelEdit();
+    } catch {
+      // error state handled by hook
     }
   };
 
-  if (!isLoaded) {
+  if (!isLoaded || isLoading) {
     return (
       <div className="card-base animate-pulse p-8 text-center text-sm text-gray-400">
         Chargement des badges...
@@ -93,10 +112,27 @@ export default function MemberBadgeEditor({
             Badges validés
           </h3>
           <p className="mt-0.5 text-sm text-gray-500">
-            Saisie manuelle · sauvegardé pour {memberName}
+            Saisie manuelle ·{" "}
+            {isSupabaseEnabled
+              ? `synchronisé en ligne pour ${memberName}`
+              : `sauvegardé localement pour ${memberName}`}
           </p>
         </div>
       </div>
+
+      {configWarning && (
+        <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <CloudOff className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>{configWarning}</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>{error}</p>
+        </div>
+      )}
 
       {badges.length === 0 ? (
         <EmptyState
@@ -119,12 +155,14 @@ export default function MemberBadgeEditor({
                     onChange={(e) => setEditName(e.target.value)}
                     className="input-field"
                     placeholder="Nom du badge"
+                    disabled={isSaving}
                   />
                   <input
                     type="date"
                     value={editDate}
                     onChange={(e) => setEditDate(e.target.value)}
                     className="input-field"
+                    disabled={isSaving}
                   />
                   <input
                     type="text"
@@ -132,13 +170,24 @@ export default function MemberBadgeEditor({
                     onChange={(e) => setEditNote(e.target.value)}
                     className="input-field"
                     placeholder="Note (optionnel)"
+                    disabled={isSaving}
                   />
                   <div className="flex gap-2">
-                    <button type="button" onClick={saveEdit} className="btn-primary py-2 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => void saveEdit()}
+                      disabled={isSaving}
+                      className="btn-primary py-2 text-xs disabled:cursor-not-allowed disabled:opacity-50"
+                    >
                       <Check className="h-3.5 w-3.5" />
-                      Enregistrer
+                      {isSaving ? "Enregistrement..." : "Enregistrer"}
                     </button>
-                    <button type="button" onClick={cancelEdit} className="btn-secondary py-2 text-xs">
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      disabled={isSaving}
+                      className="btn-secondary py-2 text-xs disabled:cursor-not-allowed disabled:opacity-50"
+                    >
                       <X className="h-3.5 w-3.5" />
                       Annuler
                     </button>
@@ -165,15 +214,17 @@ export default function MemberBadgeEditor({
                   <button
                     type="button"
                     onClick={() => startEdit(badge)}
-                    className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-xs font-medium text-scout-forest hover:bg-scout-forest/5"
+                    disabled={isSaving}
+                    className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-xs font-medium text-scout-forest hover:bg-scout-forest/5 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Pencil className="h-3.5 w-3.5" />
                     Modifier
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDelete(badge.id, badge.name)}
-                    className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-xs font-medium text-red-600 hover:bg-red-50"
+                    onClick={() => void handleDelete(badge.id, badge.name)}
+                    disabled={isSaving}
+                    className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-xs font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                     Supprimer
@@ -185,7 +236,7 @@ export default function MemberBadgeEditor({
         </ul>
       )}
 
-      <form onSubmit={handleAdd} className="space-y-3 rounded-xl border border-dashed border-gray-200 bg-white p-4">
+      <form onSubmit={(e) => void handleAdd(e)} className="space-y-3 rounded-xl border border-dashed border-gray-200 bg-white p-4">
         <p className="text-sm font-semibold text-scout-charcoal">Ajouter un badge</p>
         <input
           type="text"
@@ -193,6 +244,7 @@ export default function MemberBadgeEditor({
           onChange={(e) => setNewName(e.target.value)}
           placeholder="Écrire le nom du badge…"
           className="input-field"
+          disabled={isSaving}
         />
         <input
           type="text"
@@ -200,14 +252,15 @@ export default function MemberBadgeEditor({
           onChange={(e) => setNewNote(e.target.value)}
           placeholder="Note (optionnel)"
           className="input-field"
+          disabled={isSaving}
         />
         <button
           type="submit"
-          disabled={!newName.trim()}
+          disabled={!newName.trim() || isSaving}
           className="btn-primary w-full sm:w-auto disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Plus className="h-4 w-4" />
-          Ajouter
+          {isSaving ? "Enregistrement..." : "Ajouter"}
         </button>
       </form>
     </section>

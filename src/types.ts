@@ -36,7 +36,7 @@ export interface BadgeDefinition {
   requirements: string;
 }
 
-/** Badge validé manuellement pour un membre (localStorage) */
+/** Badge validé manuellement pour un membre (Supabase) */
 export interface MemberManualBadge {
   id: string;
   name: string;

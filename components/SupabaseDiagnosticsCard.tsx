@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Database, RefreshCw } from "lucide-react";
-import { getSupabaseDiagnostics } from "@/src/lib/supabase/config";
 import {
+  getSupabaseDiagnostics,
   testSupabaseConnection,
   type SupabaseConnectionTestResult,
 } from "@/src/lib/supabase/diagnostics";
@@ -66,6 +66,28 @@ export default function SupabaseDiagnosticsCard() {
           </dd>
         </div>
         <div className="flex flex-wrap justify-between gap-2">
+          <dt className="text-gray-500">Format de la clé</dt>
+          <dd className="font-medium text-scout-charcoal">{diagnostics.keyFormatLabel}</dd>
+        </div>
+        <div className="flex flex-wrap justify-between gap-2">
+          <dt className="text-gray-500">Projet accessible</dt>
+          <dd className="font-medium text-scout-charcoal">
+            {testResult?.projectReachable === null
+              ? "—"
+              : testResult?.projectReachable
+                ? "Oui"
+                : "Non"}
+          </dd>
+        </div>
+        {testResult?.projectReachableDetail && (
+          <div className="flex flex-wrap justify-between gap-2">
+            <dt className="text-gray-500">Détail projet</dt>
+            <dd className="max-w-full break-all font-medium text-scout-charcoal">
+              {testResult.projectReachableDetail}
+            </dd>
+          </div>
+        )}
+        <div className="flex flex-wrap justify-between gap-2">
           <dt className="text-gray-500">Résultat du test fetch</dt>
           <dd className="font-medium text-scout-charcoal">
             {testResult?.result ?? (isTesting ? "Test en cours..." : "—")}
@@ -78,11 +100,33 @@ export default function SupabaseDiagnosticsCard() {
           </div>
         )}
         <div className="flex flex-wrap justify-between gap-2">
+          <dt className="text-gray-500">Test SDK Supabase</dt>
+          <dd className="font-medium text-scout-charcoal">
+            {testResult?.sdkResult ?? (isTesting ? "Test en cours..." : "—")}
+          </dd>
+        </div>
+        {testResult?.sdkErrorDetail && (
+          <div className="flex flex-wrap justify-between gap-2">
+            <dt className="text-gray-500">Erreur SDK</dt>
+            <dd className="max-w-full break-all font-medium text-scout-charcoal">
+              {testResult.sdkErrorDetail}
+            </dd>
+          </div>
+        )}
+        <div className="flex flex-wrap justify-between gap-2">
           <dt className="text-gray-500">Message d&apos;erreur exact</dt>
           <dd className="max-w-full break-all font-medium text-scout-charcoal">
             {testResult?.errorDetail ?? "—"}
           </dd>
         </div>
+        {testResult?.hint && (
+          <div className="mt-3 rounded-xl border border-amber-200 bg-white/70 px-3 py-2">
+            <p className="text-xs leading-relaxed text-amber-950">
+              <span className="font-semibold">Conseil : </span>
+              {testResult.hint}
+            </p>
+          </div>
+        )}
       </dl>
 
       <button

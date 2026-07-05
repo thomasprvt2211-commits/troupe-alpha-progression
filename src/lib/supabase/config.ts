@@ -50,14 +50,3 @@ export function getSupabaseConfigError(): string | null {
   if (isSupabaseConfigured()) return null;
   return "Supabase n'est pas configuré.";
 }
-
-export function getSupabaseDiagnostics() {
-  const url = getSupabaseUrl();
-
-  return {
-    configured: isSupabaseConfigured(),
-    url: url || "(non défini)",
-    urlValid: isSupabaseUrlValid(),
-    anonKeyPresent: isAnonKeyPresent(),
-  };
-}

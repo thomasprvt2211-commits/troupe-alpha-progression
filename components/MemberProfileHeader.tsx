@@ -17,7 +17,7 @@ export default function MemberProfileHeader({
   patrol,
 }: MemberProfileHeaderProps) {
   const { getCount, isLoaded } = useMemberBadges();
-  const badgeCount = isLoaded ? getCount(member.id) : 0;
+  const badgeCount = isLoaded ? (getCount(member.id) ?? 0) : 0;
 
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-card">

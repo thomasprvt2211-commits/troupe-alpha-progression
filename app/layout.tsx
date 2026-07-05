@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { MemberBadgesProvider } from "@/src/context/MemberBadgesProvider";
 import "./globals.css";
 
 const inter = Inter({
@@ -28,9 +29,11 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={`${inter.variable} ${outfit.variable} flex min-h-screen flex-col font-sans`}>
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <MemberBadgesProvider>
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </MemberBadgesProvider>
       </body>
     </html>
   );

@@ -2,18 +2,22 @@ import { getSupabaseClient } from "@/src/lib/supabase/client";
 import type { MemberBadgeRow } from "@/src/lib/supabase/types";
 import type { MemberBadgesStore, MemberManualBadge } from "@/src/types";
 
-function rowToBadge(row: MemberBadgeRow): MemberManualBadge {
+function rowToBadge(row: MemberBadgeRow): MemberManualBadge | null {
+  if (!row?.id || !row.badge_name) return null;
+
   return {
     id: row.id,
     name: row.badge_name,
     note: row.note ?? undefined,
-    date: row.created_at.split("T")[0],
+    date: row.created_at?.split("T")[0],
   };
 }
 
 function rowsToStore(rows: MemberBadgeRow[]): MemberBadgesStore {
   return rows.reduce<MemberBadgesStore>((store, row) => {
     const badge = rowToBadge(row);
+    if (!badge || !row.member_id) return store;
+
     const existing = store[row.member_id] ?? [];
     store[row.member_id] = [...existing, badge];
     return store;
@@ -55,7 +59,10 @@ export async function addMemberBadge(
     .single();
 
   if (error) throw error;
-  return rowToBadge(row as MemberBadgeRow);
+
+  const badge = rowToBadge(row as MemberBadgeRow);
+  if (!badge) throw new Error("Réponse Supabase invalide");
+  return badge;
 }
 
 export async function updateMemberBadge(
@@ -100,19 +107,29 @@ export async function deleteMemberBadge(badgeId: string): Promise<void> {
 }
 
 export function subscribeToMemberBadges(onChange: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+
   const supabase = getSupabaseClient();
   if (!supabase) return () => {};
 
-  const channel = supabase
-    .channel("member_badges_changes")
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "member_badges" },
-      () => onChange()
-    )
-    .subscribe();
+  try {
+    const channel = supabase
+      .channel("member_badges_changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "member_badges" },
+        () => onChange()
+      )
+      .subscribe();
 
-  return () => {
-    supabase.removeChannel(channel);
-  };
+    return () => {
+      try {
+        void supabase.removeChannel(channel);
+      } catch {
+        // ignore cleanup errors
+      }
+    };
+  } catch {
+    return () => {};
+  }
 }

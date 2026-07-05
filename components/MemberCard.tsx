@@ -22,7 +22,7 @@ export default function MemberCard({
   index = 0,
 }: MemberCardProps) {
   const { getCount, isLoaded } = useMemberBadges();
-  const badgeCount = isLoaded ? getCount(member.id) : 0;
+  const badgeCount = isLoaded ? (getCount(member.id) ?? 0) : 0;
 
   return (
     <motion.button

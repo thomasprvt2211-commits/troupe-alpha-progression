@@ -21,7 +21,7 @@ export default function Hero({
   spCount,
 }: HeroProps) {
   const { getTotalCount, isLoaded } = useMemberBadges();
-  const badgeTotal = isLoaded ? getTotalCount() : 0;
+  const badgeTotal = isLoaded ? (getTotalCount() ?? 0) : 0;
 
   return (
     <section className="relative overflow-hidden">

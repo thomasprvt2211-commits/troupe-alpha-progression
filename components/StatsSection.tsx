@@ -31,11 +31,11 @@ export default function StatsSection({
 }: StatsSectionProps) {
   const { getTotalCount, getCount, isLoaded, store } = useMemberBadges();
 
-  const totalValidated = isLoaded ? getTotalCount() : 0;
+  const totalValidated = isLoaded ? (getTotalCount() ?? 0) : 0;
 
   const membersWithMostBadges = isLoaded
     ? members
-        .map((member) => ({ member, count: getCount(member.id) }))
+        .map((member) => ({ member, count: getCount(member.id) ?? 0 }))
         .filter((item) => item.count > 0)
         .sort((a, b) => b.count - a.count)
         .slice(0, 5)

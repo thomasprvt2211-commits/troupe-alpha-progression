@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, Users, Shield, Crown, Award, Layers } from "lucide-react";
 import StatCard from "@/components/ui/StatCard";
@@ -23,8 +24,19 @@ export default function Hero({
   const badgeTotal = isLoaded ? getTotalCount() : 0;
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-scout-forest via-[#234d3a] to-scout-green">
-      <div className="absolute inset-0 bg-hero-pattern" />
+    <section className="relative overflow-hidden">
+      <Image
+        src="/images/backgrounds/troupe-alpha-background.jpg"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover object-center"
+        aria-hidden
+      />
+      <div className="absolute inset-0 bg-gradient-to-br from-scout-forest/75 via-[#1a3d2e]/70 to-scout-green/75" />
+      <div className="absolute inset-0 bg-black/20" />
+      <div className="absolute inset-0 bg-hero-pattern opacity-60" />
       <div
         className="absolute inset-0 opacity-[0.04]"
         style={{
@@ -50,7 +62,7 @@ export default function Hero({
           <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-[3.25rem]">
             Progression personnelle — Troupe Alpha
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-white/75 sm:text-xl">
+          <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-white/85 sm:text-xl">
             Suivi moderne des patrouilles, membres et badges scouts
           </p>
 

@@ -24,6 +24,7 @@ import {
   deleteMemberBadge as deleteBadgeRemote,
   subscribeToMemberBadges,
 } from "@/src/lib/supabase/member-badges";
+import { createMemberBadgesError, type MemberBadgesError } from "@/src/lib/supabase/errors";
 import type { MemberBadgesStore, MemberManualBadge } from "@/src/types";
 
 export interface MemberBadgesContextValue {
@@ -31,7 +32,7 @@ export interface MemberBadgesContextValue {
   isLoaded: boolean;
   isLoading: boolean;
   isSaving: boolean;
-  error: string | null;
+  error: MemberBadgesError | null;
   configWarning: string | null;
   isSupabaseEnabled: boolean;
   getBadges: (memberId: string) => MemberManualBadge[];
@@ -59,7 +60,7 @@ function useMemberBadgesState(): MemberBadgesContextValue {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<MemberBadgesError | null>(null);
   const [configWarning, setConfigWarning] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
@@ -81,8 +82,10 @@ function useMemberBadgesState(): MemberBadgesContextValue {
     try {
       const data = await fetchAllMemberBadges();
       setStore(data ?? EMPTY_STORE);
-    } catch {
-      setError("Impossible de charger les badges depuis Supabase.");
+    } catch (caught) {
+      setError(
+        createMemberBadgesError("Impossible de charger les badges depuis Supabase.", caught)
+      );
       setStore(loadAllMemberBadges());
     } finally {
       setIsLoaded(true);
@@ -145,8 +148,8 @@ function useMemberBadgesState(): MemberBadgesContextValue {
           addBadgeLocal(memberId, data);
           setStore(loadAllMemberBadges());
         }
-      } catch {
-        setError("Erreur lors de l'ajout du badge.");
+      } catch (caught) {
+        setError(createMemberBadgesError("Erreur lors de l'ajout du badge.", caught));
         throw new Error("add failed");
       } finally {
         setIsSaving(false);
@@ -172,8 +175,8 @@ function useMemberBadgesState(): MemberBadgesContextValue {
           updateBadgeLocal(memberId, badgeId, updates);
           setStore(loadAllMemberBadges());
         }
-      } catch {
-        setError("Erreur lors de la modification du badge.");
+      } catch (caught) {
+        setError(createMemberBadgesError("Erreur lors de la modification du badge.", caught));
         throw new Error("update failed");
       } finally {
         setIsSaving(false);
@@ -195,8 +198,8 @@ function useMemberBadgesState(): MemberBadgesContextValue {
           deleteBadgeLocal(memberId, badgeId);
           setStore(loadAllMemberBadges());
         }
-      } catch {
-        setError("Erreur lors de la suppression du badge.");
+      } catch (caught) {
+        setError(createMemberBadgesError("Erreur lors de la suppression du badge.", caught));
         throw new Error("delete failed");
       } finally {
         setIsSaving(false);

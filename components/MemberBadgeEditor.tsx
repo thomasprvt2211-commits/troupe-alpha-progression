@@ -130,7 +130,12 @@ export default function MemberBadgeEditor({
       {error && (
         <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          <p>{error}</p>
+          <div>
+            <p>{error.message}</p>
+            {error.detail && (
+              <p className="mt-1 text-xs text-red-600/90">Détail : {error.detail}</p>
+            )}
+          </div>
         </div>
       )}
 

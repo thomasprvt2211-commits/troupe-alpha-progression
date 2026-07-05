@@ -89,6 +89,47 @@ export default function SupabaseDiagnosticsCard() {
             </p>
           </div>
         )}
+        {testResult?.networkTests && testResult.networkTests.length > 0 && (
+          <div className="mt-3 space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Tests réseau serveur (Vercel → Supabase)
+            </p>
+            {testResult.networkTests.map((test) => (
+              <div
+                key={test.url}
+                className={`rounded-xl border px-3 py-2 ${
+                  test.success
+                    ? "border-green-200 bg-green-50"
+                    : "border-red-200 bg-red-50"
+                }`}
+              >
+                <p className="text-xs font-semibold text-scout-charcoal">
+                  {test.label} — {test.success ? "OK" : "Échec"}
+                  {test.status !== null ? ` (HTTP ${test.status})` : ""}
+                </p>
+                <p className="max-w-full break-all text-[11px] text-gray-500">
+                  {test.url}
+                </p>
+                {test.body && (
+                  <p className="mt-1 max-w-full break-all text-[11px] text-gray-600">
+                    Réponse : {test.body}
+                  </p>
+                )}
+                {test.errorMessage && (
+                  <p className="mt-1 max-w-full break-all text-[11px] text-red-800">
+                    Erreur : {test.errorName ? `${test.errorName} — ` : ""}
+                    {test.errorMessage}
+                  </p>
+                )}
+                {test.errorCause && (
+                  <p className="max-w-full break-all text-[11px] text-red-800">
+                    Cause : {test.errorCause}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
         {testResult && !testResult.success && testResult.error && (
           <div className="mt-3 rounded-xl border border-amber-200 bg-white/70 px-3 py-2">
             <p className="text-xs leading-relaxed text-amber-950">

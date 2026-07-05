@@ -93,6 +93,17 @@ export async function deleteMemberBadgeViaApi(badgeId: string): Promise<void> {
   }
 }
 
+export interface ApiNetworkTestResult {
+  label: string;
+  url: string;
+  success: boolean;
+  status: number | null;
+  body: string | null;
+  errorName: string | null;
+  errorMessage: string | null;
+  errorCause: string | null;
+}
+
 export interface ApiDiagnosticResult {
   configured: boolean;
   urlValid: boolean;
@@ -101,6 +112,7 @@ export interface ApiDiagnosticResult {
   count: number;
   error: string | null;
   url?: string;
+  networkTests?: ApiNetworkTestResult[];
 }
 
 export async function testMemberBadgesApiConnection(): Promise<ApiDiagnosticResult> {
